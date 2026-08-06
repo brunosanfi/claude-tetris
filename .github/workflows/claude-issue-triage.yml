@@ -1,0 +1,103 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Triage
+        id: claude
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          claude_args: '--allowedTools "Bash(gh *)"'
+          prompt: |
+            You are triaging a GitHub issue for the claude-tetris repository — a browser-based Tetris game with no build step, no dependencies, and three files:
+            - `game.js` (~300 lines, `'use strict'`, no classes): all game logic
+            - `index.html`: DOM structure with two canvases (`board` 300×600, `next-canvas`)
+            - `style.css`: dark/retro theme
+
+            Key functions in game.js: `collide()`, `rotateCW()`, `tryRotate()`, `ghostY()`, `lockPiece()`, `clearLines()`, `loop()`, `init()`
+            Tunable constants: `COLS/ROWS` (10/20), `BLOCK` (30px), `COLORS`, `LINE_SCORES`, `dropInterval`
+
+            ## Issue details
+            - **Number:** ${{ github.event.issue.number }}
+            - **Title:** ${{ github.event.issue.title }}
+            - **Body:** ${{ github.event.issue.body }}
+            - **Event:** ${{ github.event_name }} (${{ github.event.action }})
+            - **Repo:** ${{ github.repository }}
+
+            ## Task 1 — Apply labels
+
+            First, list existing labels:
+            ```
+            gh label list --repo ${{ github.repository }}
+            ```
+
+            Based on the issue, select 1–3 labels from this taxonomy:
+            | Label | When |
+            |---|---|
+            | `bug` | Something doesn't work as expected |
+            | `enhancement` | New feature or improvement |
+            | `question` | Question or clarification request |
+            | `documentation` | Docs or comment improvements |
+            | `game-logic` | Piece movement, rotation, collision, clearLines, lockPiece |
+            | `ui-rendering` | Canvas, colors, animations, draw() |
+            | `controls` | Keyboard handling and events |
+            | `scoring` | Score, level, lines |
+            | `performance` | Loop, requestAnimationFrame, optimization |
+            | `good first issue` | Simple change, tunable constants |
+
+            Create any missing labels that you want to apply (pick a sensible hex color), then apply them:
+            ```
+            gh label create "label-name" --color "#hex" --repo ${{ github.repository }}
+            gh issue edit ${{ github.event.issue.number }} --add-label "label1,label2" --repo ${{ github.repository }}
+            ```
+
+            ## Task 2 — Diagnostic comment
+
+            Check if a triage comment from a previous run already exists:
+            ```
+            gh issue view ${{ github.event.issue.number }} --repo ${{ github.repository }} --comments --json comments
+            ```
+
+            Look for a comment body that starts with `## Diagnóstico del Issue`.
+
+            - If the event is `opened` or no prior triage comment exists: create a new comment.
+            - If the event is `edited` and a prior triage comment exists: edit it using its comment ID with `gh issue comment edit <comment-id> --body "..." --repo ${{ github.repository }}`.
+
+            The comment must follow this exact structure (in Spanish):
+
+            ```
+            ## Diagnóstico del Issue
+
+            **Resumen:** [1-2 sentences]
+            **Categoría:** Bug / Feature Request / Pregunta / Documentación
+            **Área afectada:** [game.js → specific function / index.html / style.css]
+            **Severidad:** Crítica / Alta / Media / Baja
+            **Hipótesis de causa raíz:** [based on the game architecture]
+
+            ### Enfoque de implementación sugerido
+            [Concrete steps referencing real game.js functions]
+
+            ### Archivos a modificar
+            - `archivo.js` — reason
+
+            ### Complejidad estimada
+            Simple / Moderada / Compleja
+            ```
+
+            Use `gh issue comment create --body "..." --repo ${{ github.repository }} ${{ github.event.issue.number }}` to post the comment.
