@@ -291,3 +291,36 @@ kbd {
   background: #22223a; border: 1px solid #3a3a5a; border-radius: 4px;
   color: #e0e0e0; padding: 3px 6px; font-size: 12px; cursor: pointer;
 }
+
+/* ---- Sidebar leaderboard ---- */
+.scores-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.scores-table td { padding: 2px 3px; color: #aaa; }
+.scores-table .rank { color: #555570; width: 14px; }
+.scores-table .sname { max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.scores-table .spts { text-align: right; font-family: 'Courier New', Courier, monospace; color: #7aa2f7; }
+.scores-table .new-entry td { color: #ffd54f; }
+.no-scores { font-size: 11px; color: #555570; }
+.small-btn {
+  background: transparent; border: 1px solid #3a3a5a; border-radius: 4px;
+  color: #555570; font-size: 10px; padding: 3px 8px; cursor: pointer;
+  letter-spacing: 0.5px; transition: color 0.15s, border-color 0.15s;
+}
+.small-btn:hover { color: #e57373; border-color: #e57373; }
+
+/* ---- Name input section ---- */
+#name-input-section { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+#name-input-section.hidden { display: none; }
+.new-record-text { font-size: 13px; color: #ffd54f; font-weight: 600; }
+#player-name {
+  background: #22223a; border: 1px solid #3a3a5a; border-radius: 6px;
+  color: #e0e0e0; padding: 6px 12px; font-size: 14px; width: 180px; text-align: center;
+}
+#player-name:focus { outline: 1px solid #7aa2f7; }
+#save-score-btn {
+  background: #ffd54f; color: #0f0f17; border: none; border-radius: 6px;
+  padding: 7px 24px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;
+}
+#save-score-btn:hover { background: #ffe082; }
+#overlay-leaderboard .scores-table { font-size: 12px; }
+#overlay-leaderboard .scores-table td { padding: 3px 8px; }
+#overlay-leaderboard .scores-table .sname { max-width: 120px; }

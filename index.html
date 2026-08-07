@@ -50,6 +50,12 @@
             <span class="theme-label">Claro</span>
           </label>
         </div>
+
+        <div class="panel-section">
+          <span class="label">TOP 5</span>
+          <div id="leaderboard"></div>
+          <button id="reset-scores-btn" class="small-btn">Borrar records</button>
+        </div>
       </aside>
     </div>
 
@@ -81,6 +87,12 @@
         <div class="gameover-content">
           <p id="overlay-title">GAME OVER</p>
           <p id="overlay-score"></p>
+          <div id="name-input-section" class="hidden">
+            <p class="new-record-text">¡Nuevo récord top 5!</p>
+            <input id="player-name" type="text" placeholder="Tu nombre" maxlength="15" />
+            <button id="save-score-btn">Guardar</button>
+          </div>
+          <div id="overlay-leaderboard"></div>
           <button id="restart-btn">Reiniciar</button>
         </div>
 
