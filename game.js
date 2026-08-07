@@ -27,6 +27,7 @@ const PIECES = [
 ];
 
 const LINE_SCORES = [0, 100, 300, 500, 800];
+const SCORES_KEY = 'tetris_scores';
 
 const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
@@ -41,6 +42,46 @@ const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
+let maxCombo, currentCombo, maxLinesInMove;
+
+function getScores() {
+  try { return JSON.parse(localStorage.getItem(SCORES_KEY)) || []; }
+  catch { return []; }
+}
+function saveScores(scores) { localStorage.setItem(SCORES_KEY, JSON.stringify(scores)); }
+function isTopScore(s) {
+  if (s <= 0) return false;
+  const scores = getScores();
+  return scores.length < 5 || s > scores[scores.length - 1].score;
+}
+function addScore(name, s, combo, linesCleared) {
+  const scores = getScores();
+  const entry = { name, score: s, combo, lines: linesCleared, date: new Date().toISOString().split('T')[0] };
+  scores.push(entry);
+  scores.sort((a, b) => b.score - a.score);
+  if (scores.length > 5) scores.splice(5);
+  saveScores(scores);
+  return scores.indexOf(entry);
+}
+function escapeHtml(str) {
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+function buildLeaderboardHTML(scores, highlightIdx) {
+  if (!scores.length) return '<p class="no-scores">Sin records aún</p>';
+  return `<table class="scores-table"><tbody>${
+    scores.map((s, i) => `<tr class="${i === highlightIdx ? 'new-entry' : ''}">
+      <td class="rank">${i + 1}</td>
+      <td class="sname">${escapeHtml(s.name)}</td>
+      <td class="spts">${s.score.toLocaleString()}</td>
+    </tr>`).join('')
+  }</tbody></table>`;
+}
+function renderLeaderboard(highlightIdx = -1) {
+  document.getElementById('leaderboard').innerHTML = buildLeaderboardHTML(getScores(), highlightIdx);
+}
+function renderOverlayLeaderboard(highlightIdx = -1) {
+  document.getElementById('overlay-leaderboard').innerHTML = buildLeaderboardHTML(getScores(), highlightIdx);
+}
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => new Array(COLS).fill(0));
@@ -104,11 +145,16 @@ function clearLines() {
     }
   }
   if (cleared) {
+    currentCombo++;
+    if (currentCombo > maxCombo) maxCombo = currentCombo;
+    if (cleared > maxLinesInMove) maxLinesInMove = cleared;
     lines += cleared;
     score += (LINE_SCORES[cleared] || 0) * level;
     level = Math.floor(lines / 10) + 1;
     dropInterval = Math.max(100, 1000 - (level - 1) * 90);
     updateHUD();
+  } else {
+    currentCombo = 0;
   }
 }
 
@@ -224,6 +270,15 @@ function endGame() {
   overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
   overlay.classList.remove('hidden');
+
+  const nameSection = document.getElementById('name-input-section');
+  if (isTopScore(score)) {
+    nameSection.classList.remove('hidden');
+    document.getElementById('player-name').focus();
+  } else {
+    nameSection.classList.add('hidden');
+  }
+  renderOverlayLeaderboard();
 }
 
 function togglePause() {
@@ -259,6 +314,9 @@ function loop(ts) {
 function init() {
   board = createBoard();
   score = 0;
+  maxCombo = 0;
+  currentCombo = 0;
+  maxLinesInMove = 0;
   lines = 0;
   level = 1;
   paused = false;
@@ -272,6 +330,7 @@ function init() {
   overlay.classList.add('hidden');
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
+  renderLeaderboard();
 }
 
 document.addEventListener('keydown', e => {
@@ -301,4 +360,23 @@ document.addEventListener('keydown', e => {
 
 restartBtn.addEventListener('click', init);
 
+document.getElementById('save-score-btn').addEventListener('click', () => {
+  const nameInput = document.getElementById('player-name');
+  const name = nameInput.value.trim() || 'Anónimo';
+  nameInput.value = '';
+  const idx = addScore(name, score, maxCombo, maxLinesInMove);
+  document.getElementById('name-input-section').classList.add('hidden');
+  renderLeaderboard(idx);
+  renderOverlayLeaderboard(idx);
+});
+document.getElementById('player-name').addEventListener('keydown', e => {
+  if (e.code === 'Enter') document.getElementById('save-score-btn').click();
+});
+document.getElementById('reset-scores-btn').addEventListener('click', () => {
+  localStorage.removeItem(SCORES_KEY);
+  renderLeaderboard();
+  renderOverlayLeaderboard();
+});
+
+renderLeaderboard();
 init();
