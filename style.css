@@ -164,3 +164,39 @@ kbd {
 #restart-btn:hover {
   background: #9bbdff;
 }
+
+/* overlay-box sizing */
+.overlay-box { min-width: 240px; max-width: 320px; padding: 28px 24px; }
+
+/* content switching */
+.pause-content, .gameover-content {
+  display: none; flex-direction: column; gap: 12px; align-items: center; width: 100%;
+}
+.overlay.pause-mode .pause-content,
+.overlay.gameover-mode .gameover-content { display: flex; }
+
+/* pause heading */
+.overlay-heading { font-size: 28px; font-weight: 800; letter-spacing: 6px; color: #7aa2f7; }
+
+/* pause buttons */
+#resume-btn, #restart-pause-btn {
+  width: 180px; background: transparent; border: 2px solid #7aa2f7; border-radius: 6px;
+  color: #7aa2f7; padding: 8px 0; font-size: 14px; font-weight: 700; cursor: pointer;
+  letter-spacing: 1px; transition: background 0.15s, color 0.15s;
+}
+#resume-btn:hover, #restart-pause-btn:hover { background: #7aa2f7; color: #0f0f17; }
+
+/* controls info box */
+.pause-controls-info {
+  text-align: left; border: 1px solid #2a2a3a; border-radius: 6px; padding: 10px 14px; width: 180px;
+}
+.pause-controls-info .label { display: block; margin-bottom: 6px; }
+.pause-controls-info ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.pause-controls-info li { font-size: 12px; color: #888; display: flex; align-items: center; gap: 4px; }
+
+/* level selector */
+.start-level-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #888; }
+#start-level {
+  background: #22223a; border: 1px solid #3a3a5a; border-radius: 4px;
+  color: #e0e0e0; padding: 3px 6px; font-size: 12px; cursor: pointer;
+}
