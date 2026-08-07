@@ -223,20 +223,22 @@ function endGame() {
   cancelAnimationFrame(animId);
   overlayTitle.textContent = 'GAME OVER';
   overlayScore.textContent = `Puntuación: ${score.toLocaleString()}`;
-  overlay.classList.remove('hidden');
+  overlay.classList.remove('hidden', 'pause-mode');
+  overlay.classList.add('gameover-mode');
 }
 
 function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
+    overlay.classList.add('hidden');
+    overlay.classList.remove('pause-mode');
     lastTime = performance.now();
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
+    overlay.classList.remove('hidden', 'gameover-mode');
+    overlay.classList.add('pause-mode');
   }
 }
 
@@ -257,19 +259,21 @@ function loop(ts) {
 }
 
 function init() {
+  const startLevel = parseInt(document.getElementById('start-level').value) || 1;
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  level = startLevel;
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = Math.max(100, 1000 - (startLevel - 1) * 90);
   dropAccum = 0;
   lastTime = performance.now();
   next = randomPiece();
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  overlay.classList.remove('pause-mode', 'gameover-mode');
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -300,6 +304,16 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+document.getElementById('resume-btn').addEventListener('click', togglePause);
+document.getElementById('restart-pause-btn').addEventListener('click', init);
+
+const startLevelEl = document.getElementById('start-level');
+for (let i = 1; i <= 15; i++) {
+  const opt = document.createElement('option');
+  opt.value = i;
+  opt.textContent = i;
+  startLevelEl.appendChild(opt);
+}
 
 const themeToggle = document.getElementById('theme-toggle');
 themeToggle.addEventListener('change', () => {
